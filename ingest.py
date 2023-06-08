@@ -26,16 +26,31 @@ from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.docstore.document import Document
 from constants import CHROMA_SETTINGS
 
+from langchain.embeddings import HuggingFaceInstructEmbeddings
+
+import torch
 
 load_dotenv()
 
+runtime_device = "cuda" if torch.cuda.is_available() else "cpu"
+print("++++++++ " + runtime_device.upper() + " is available and will be use for Embeddings +++++++++")
 
 # Load environment variables
-persist_directory = os.environ.get('PERSIST_DIRECTORY')
 source_directory = os.environ.get('SOURCE_DIRECTORY', 'source_documents')
-embeddings_model_name = os.environ.get('EMBEDDINGS_MODEL_NAME')
-chunk_size = 500
-chunk_overlap = 50
+
+if runtime_device == "cuda":
+    embeddings_model_name = os.environ.get('EMBEDDINGS_MODEL_NAME_GPU')
+    persist_directory = os.environ.get('PERSIST_DIRECTORY_GPU')
+else:
+    embeddings_model_name = os.environ.get('EMBEDDINGS_MODEL_NAME_CPU')
+    persist_directory = os.environ.get('PERSIST_DIRECTORY_CPU')
+
+print("++++++++ " + embeddings_model_name.upper() + " will be use +++++++++")
+print("++++++++ " + persist_directory.upper() + " db repo will be use +++++++++")
+
+
+chunk_size = 1000
+chunk_overlap = 100
 
 
 # Custom document loaders
@@ -140,7 +155,10 @@ def does_vectorstore_exist(persist_directory: str) -> bool:
 
 def main():
     # Create embeddings
-    embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
+    # embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
+    model_name = embeddings_model_name
+    model_kwargs = {'device': runtime_device}
+    embeddings = HuggingFaceInstructEmbeddings(model_name=model_name, model_kwargs=model_kwargs)
 
     if does_vectorstore_exist(persist_directory):
         # Update and store locally vectorstore

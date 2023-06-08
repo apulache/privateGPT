@@ -9,6 +9,14 @@ Built with [LangChain](https://github.com/hwchase17/langchain), [GPT4All](https:
 In order to set your environment up to run the code here, first install all requirements:
 
 ```shell
+sudo apt install pandoc
+```
+
+```shell
+mamba create -n privateGPT python=3.10
+```
+
+```shell
 pip3 install -r requirements.txt
 ```
 
